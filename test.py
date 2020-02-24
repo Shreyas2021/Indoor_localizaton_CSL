@@ -2,7 +2,7 @@ import numpy as np
 # from numpy.fft import fft, ifft
 import cv2
 import random
-
+from skimage.morphology import skeletonize 
 
 M = 300
 N = 300
@@ -77,8 +77,8 @@ def BFS(mat, i, j, x, y):
 
 
 
-img = cv2.imread('B148-2.png')
-img=cv2.resize(img,(1000,1000))
+img = cv2.imread("m_B148-2.png")
+img=cv2.resize(img,(900,300))
 # cv2.imshow('img',img)
 # cv2.waitKey()
 # lane = lanenet_detector()
@@ -111,24 +111,46 @@ for i in range(binary_output.shape[0]):
         else:
             binary_output[i,j] = 255
 
-
-
-path_graph = []
-print(binary_output.shape)
-for i in range(binary_output.shape[0]):
-    temp = []
-    for j in range(binary_output.shape[1]):
-        if binary_output[i,j] == 0:
-            temp.append(1)
-        else:
-            temp.append(0)
-
-    path_graph.append(temp)
-
-
-print(path_graph)
-
 cv2.imshow('img',binary_output)
+cv2.waitKey()
+
+
+# path_graph = []
+# print(binary_output.shape)
+# for i in range(binary_output.shape[0]):
+#     temp = []
+#     for j in range(binary_output.shape[1]):
+#         if binary_output[i,j] == 0:
+#             temp.append(1)
+#         else:
+#             temp.append(0)
+
+#     path_graph.append(temp)
+
+# path_graph = np.array(path_graph)
+# # print(path_graph)
+
+size = np.size(binary_output)
+skel = np.zeros(binary_output.shape,np.uint8)
+element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
+done = False 
+# Skeletonize the image 
+while True: 
+    #Step 2: Open the image
+    open_img = cv2.morphologyEx(binary_output, cv2.MORPH_OPEN, element)
+    #Step 3: Substract open from the original image
+    temp = cv2.subtract(binary_output, open_img)
+    #Step 4: Erode the original image and refine the skeleton
+    eroded = cv2.erode(binary_output, element)
+    skel = cv2.bitwise_or(skel,temp)
+    binary_output = eroded.copy()
+    # Step 5: If there are no white pixels left ie.. the image has been completely eroded, quit the loop
+    if cv2.countNonZero(binary_output)==0:
+        break
+ 
+cv2.imshow("skel",skel)
+
+cv2.imshow('img',skel)
 cv2.waitKey()
 
 # BFS(path_graph, 0, 0,  )
