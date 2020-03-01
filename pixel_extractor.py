@@ -6,7 +6,7 @@ import cv2
 import random
 
 
-img = cv2.imread('B148-2.jpg')
+img = cv2.imread('m_B148-2.png')
 img=cv2.resize(img,(1700,700))
 # cv2.imshow('img',img)
 # cv2.waitKey()

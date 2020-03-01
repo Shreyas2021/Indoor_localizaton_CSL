@@ -22,12 +22,16 @@ def BFS(mat, i, j, x, y):
 #construct a matrix to keep track of visited cells
 
     visited = []
-
+    prev = []
     for c in range(M):
-        temp = [] 
+        temp1 = [] 
+        temp2 = []
         for d in range(N):
-            temp.append(False)
-        visited.append(temp)
+            temp1.append(False)
+            temp2.append([])
+        visited.append(temp1)
+        prev.append(temp2)
+    print(prev)
 
     #initially all cells are unvisited
 
@@ -41,12 +45,13 @@ def BFS(mat, i, j, x, y):
     #stores length of longest path from source to destination
     min_dist = np.inf 
 
+    s = 0
+     
     #run till queue is not empty
     while (q != []):
         #pop front node from queue and process it
         node = q.pop(0)
         print(node)
-        # q.pop()
 
         #(i, j) represents current cell and dist stores its
         #minimum distance from the source
@@ -62,7 +67,9 @@ def BFS(mat, i, j, x, y):
 
         #check for all 4 possible movements from current cell
         #and enqueue each valid movement
-
+        
+        print('iter#', s)
+        s += 1
         for k in range(4):
             
             #check if it is possible to go to position
@@ -72,6 +79,7 @@ def BFS(mat, i, j, x, y):
                 #mark next cell as visited and enqueue it
                 visited[i + row[k]][j + col[k]] = True
                 q.append([ i + row[k], j + col[k], dist + 1 ])
+                prev[i + row[k]][ j + col[k]].append((i,j))
             
             
     
@@ -80,14 +88,27 @@ def BFS(mat, i, j, x, y):
         print("The shortest path from source to destination has length ",min_dist) 
     else:
         print("Destination can't be reached from given source")
+    
+    path = []
 
+    m = x
+    n = y
+    while prev[m][n] != []:
+        path.append(prev[m][n][0])
+        tup = prev[m][n][0]
+        m = tup[0]
+        n = tup[1]
+        
+
+    print(path)
+    
 
 #Shortest path in a Maze
 
 #input maze
 mat = [[1, 1, 1, 1, 1, 0, 0, 1, 1, 1],
-        [0, 1, 1, 1, 1, 1, 0, 1, 0, 1],
-        [0, 0, 1, 0, 1, 1, 1, 0, 0, 1],
+        [1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+        [1, 1, 1, 0, 1, 1, 1, 0, 0, 1],
         [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
         [0, 0, 0, 1, 0, 0, 0, 1, 0, 1],
         [1, 0, 1, 1, 1, 0, 0, 1, 1, 0],
@@ -100,3 +121,6 @@ print(len(mat))
 #Find shortest path from source(0, 0) to
 #destination(7, 5)
 BFS(mat, 0, 0, 7, 5)
+# mat = np.array(mat)
+# indices = [[0,0], [0,1]]
+# print(mat[indices[0]])

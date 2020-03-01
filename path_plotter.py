@@ -1,14 +1,14 @@
 import numpy as np
-# from numpy.fft import fft, ifft
 import cv2
 import random
 from skimage.morphology import skeletonize 
 
 M = 300
-N = 300
+N = 900
 
 row = [- 1, 0, 0, 1]
 col = [0, - 1, 1, 0]
+
 #Function to check if it is possible to go to position(row, col)
 #from current position.The function returns false if (row, col)
 #is not a valid position or has value 0 or it is already visited
@@ -31,8 +31,8 @@ def BFS(mat, i, j, x, y):
             temp2.append([])
         visited.append(temp1)
         prev.append(temp2)
-    print(prev)
-
+    # print(prev)
+    
     #initially all cells are unvisited
 
     #create an empty queue
@@ -45,13 +45,12 @@ def BFS(mat, i, j, x, y):
     #stores length of longest path from source to destination
     min_dist = np.inf 
 
-    s = 0
-     
+    
     #run till queue is not empty
     while (q != []):
         #pop front node from queue and process it
         node = q.pop(0)
-        print(node)
+        # print(node)
 
         #(i, j) represents current cell and dist stores its
         #minimum distance from the source
@@ -68,8 +67,6 @@ def BFS(mat, i, j, x, y):
         #check for all 4 possible movements from current cell
         #and enqueue each valid movement
         
-        print('iter#', s)
-        s += 1
         for k in range(4):
             
             #check if it is possible to go to position
@@ -100,62 +97,24 @@ def BFS(mat, i, j, x, y):
         n = tup[1]
         
 
-    print(path)
+    # print(path)
     # print(len(path))
-
-
+    return path
 
 
 
 def img_process(image):
         
-    img=cv2.resize(image,(900,300))
-    cv2.imshow('img',img)
-    cv2.waitKey()
-    
-    # mask out the cyan parts in the image 
-
-    # for i in range(img.shape[0]):
-    #     for j in range(img.shape[1]):
-    #         if (img[i,j,0]>175 & img[i,j,0] < 256) & (img[i,j,1]>175 & img[i,j,1] < 256) & (img[i,j,2]>0 & img[i,j,2] < 80):
-    #             img[i,j,0] = 255
-    #             img[i,j,1] = 255 
-    #             img[i,j,2] = 255 
-
-     
-
-    # hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    # cv2.imshow('img',hsv)
-    # cv2.waitKey()
-    
-    # # rgb mask 
-    # # lower = np.uint8([175,175,0])
-    # # upper = np.uint8([255,255,175])
-
-    # # hsv mask 
-    # lower = np.uint8([160,60,60])
-    # upper = np.uint8([180,100,100])
-
-    # # mask = cv2.inRange(img, lower, upper)
-    # mask = cv2.inRange(hsv, lower, upper)
-    # mask_inv = cv2.bitwise_not(mask)
-
-    # cv2.imshow('img',mask)
-    # cv2.waitKey()
-    
-    # # img = cv2.bitwise_and(img, img, mask = mask_inv)
-
-    # hsv = cv2. bitwise_and(hsv, hsv, mask = mask_inv)
-    # img = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-
+    # img=cv2.resize(image,(900,300))
     # cv2.imshow('img',img)
     # cv2.waitKey()
-
+    # img = cv2.imwrite("/home/shreyasbyndoor/path_planning_floorplan/color_fp_resize.jpg", img)
+    
     """
     Apply sobel edge detection on input image in x, y direction
     """
     # 1. Convert the image to gray scale
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # 2. Gaussian blur the image
     img = cv2.GaussianBlur(img, (3, 3), 0)
@@ -182,21 +141,6 @@ def img_process(image):
     cv2.imshow('img',binary_output)
     cv2.waitKey()
 
-
-    # path_graph = []
-    # print(binary_output.shape)
-    # for i in range(binary_output.shape[0]):
-    #     temp = []
-    #     for j in range(binary_output.shape[1]):
-    #         if binary_output[i,j] == 0:
-    #             temp.append(1)
-    #         else:
-    #             temp.append(0)
-
-    #     path_graph.append(temp)
-
-    # path_graph = np.array(path_graph)
-    # # print(path_graph)
     
     size = np.size(binary_output)
     skel = np.zeros(binary_output.shape,np.uint8)
@@ -216,26 +160,16 @@ def img_process(image):
         if cv2.countNonZero(binary_output)==0:
             break
 
-        # eroded = cv2.erode(binary_output,element)
-        # temp = cv2.dilate(eroded,element)
-        # temp = cv2.subtract(binary_output,temp)
-        # skel = cv2.bitwise_or(skel,temp)
-        # binary_output = eroded.copy()
-
-        # zeros = size - cv2.countNonZero(binary_output)
-        # if zeros==size:
-        #     done = True
     
-    # binary_output = cv2.morphologyEx(skel, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_CROSS,(7,7)))
-    # cv2.imshow('img',skel)
     cv2.imshow('img',skel)
     cv2.waitKey()
-    # cv2.imwrite('/home/shreyasbyndoor/path_planning_floorplan/skel_fp.jpg', skel)
+    cv2.imwrite('/home/shreyasbyndoor/path_planning_floorplan/skel_fp.jpg', skel)
     print('exported')
 
-# img = cv2.imread("/home/shreyasbyndoor/path_planning_floorplan/edit_2.jpg")
+# img = cv2.imread("/home/shreyasbyndoor/path_planning_floorplan/color_fp_resize.jpg")
 # img_process(img)
-graph_img = cv2.imread("/home/shreyasbyndoor/path_planning_floorplan/skel_fp_filled.jpg")
+
+graph_img = cv2.imread("/home/shreyasbyndoor/path_planning_floorplan/skel_fp_filled_2.jpg")
 
 
 cv2.imshow('img',graph_img)
@@ -247,15 +181,35 @@ print(graph_img.shape)
 for i in range(graph_img.shape[0]):
     temp = []
     for j in range(graph_img.shape[1]):
-        if graph_img[i,j] > 230:
+        if graph_img[i,j] > 10:
             temp.append(1)
         else:
             temp.append(0)
 
     path_graph.append(temp)
 
-# path_graph = np.array(path_graph)
+path_graph = np.array(path_graph)
 
-# print(path_graph.shape)
+# for a in range(190, 321):
+#     print(path_graph[80][a], "  ,  ")
 
-BFS(path_graph, 80, 112, 92, 98)
+# path_coordinates = BFS(path_graph, 80, 190, 80, 320)
+# path_coordinates = BFS(path_graph, 221, 99, 222, 299)
+path_coordinates = BFS(path_graph, 80, 110, 223, 784)
+
+# print(path_coordinates)
+
+# // DRAW PATH ON FLOORPLAN 
+img = cv2.imread("/home/shreyasbyndoor/path_planning_floorplan/color_fp_resize.jpg")
+# print(img.shape)
+
+for i in path_coordinates:
+    x = i[0]
+    y = i[1]
+
+    img[x,y,0] = 0
+    img[x,y,1] = 255
+    img[x,y,2] = 0
+
+cv2.imshow('img',img)
+cv2.waitKey()
