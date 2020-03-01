@@ -42,6 +42,7 @@ def BFS(mat, i, j, x, y):
     min_dist = np.inf 
 
     #run till queue is not empty
+    s = 0
     while (q != []):
         #pop front node from queue and process it
         node = q.pop(0)
@@ -60,7 +61,8 @@ def BFS(mat, i, j, x, y):
             break
         #check for all 4 possible movements from current cell
         #and enqueue each valid movement
-
+        print('iter#', s)
+        s += 1
         for k in range(4):
             #check if it is possible to go to position
             #(i + row[k], j + col[k]) from current position
@@ -87,12 +89,12 @@ def img_process(image):
     
     # mask out the cyan parts in the image 
 
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            if (img[i,j,0]>175 & img[i,j,0] < 256) & (img[i,j,1]>175 & img[i,j,1] < 256) & (img[i,j,2]>0 & img[i,j,2] < 80):
-                img[i,j,0] = 255
-                img[i,j,1] = 255 
-                img[i,j,2] = 255 
+    # for i in range(img.shape[0]):
+    #     for j in range(img.shape[1]):
+    #         if (img[i,j,0]>175 & img[i,j,0] < 256) & (img[i,j,1]>175 & img[i,j,1] < 256) & (img[i,j,2]>0 & img[i,j,2] < 80):
+    #             img[i,j,0] = 255
+    #             img[i,j,1] = 255 
+    #             img[i,j,2] = 255 
 
      
 
@@ -120,8 +122,8 @@ def img_process(image):
     # hsv = cv2. bitwise_and(hsv, hsv, mask = mask_inv)
     # img = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
-    cv2.imshow('img',img)
-    cv2.waitKey()
+    # cv2.imshow('img',img)
+    # cv2.waitKey()
 
     """
     Apply sobel edge detection on input image in x, y direction
@@ -169,10 +171,10 @@ def img_process(image):
 
     # path_graph = np.array(path_graph)
     # # print(path_graph)
-
+    
     size = np.size(binary_output)
     skel = np.zeros(binary_output.shape,np.uint8)
-    element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
+    element = cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5))
     done = False 
     # Skeletonize the image 
     while True: 
@@ -187,14 +189,47 @@ def img_process(image):
         # Step 5: If there are no white pixels left ie.. the image has been completely eroded, quit the loop
         if cv2.countNonZero(binary_output)==0:
             break
+
+        # eroded = cv2.erode(binary_output,element)
+        # temp = cv2.dilate(eroded,element)
+        # temp = cv2.subtract(binary_output,temp)
+        # skel = cv2.bitwise_or(skel,temp)
+        # binary_output = eroded.copy()
+
+        # zeros = size - cv2.countNonZero(binary_output)
+        # if zeros==size:
+        #     done = True
     
-    binary_output = cv2.morphologyEx(skel, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_CROSS,(7,7)))
+    # binary_output = cv2.morphologyEx(skel, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_CROSS,(7,7)))
     # cv2.imshow('img',skel)
-    cv2.imshow('img',binary_output)
+    cv2.imshow('img',skel)
     cv2.waitKey()
+    # cv2.imwrite('/home/shreyasbyndoor/path_planning_floorplan/skel_fp.jpg', skel)
+    print('exported')
+
+# img = cv2.imread("/home/shreyasbyndoor/path_planning_floorplan/edit_2.jpg")
+# img_process(img)
+graph_img = cv2.imread("/home/shreyasbyndoor/path_planning_floorplan/skel_fp_filled.jpg")
 
 
+cv2.imshow('img',graph_img)
+cv2.waitKey()
 
-img = cv2.imread("edit_2.jpg")
-img_process(img)
-# BFS(path_graph, 0, 0,  )
+graph_img = cv2.cvtColor(graph_img, cv2.COLOR_BGR2GRAY)
+path_graph = []
+print(graph_img.shape)
+for i in range(graph_img.shape[0]):
+    temp = []
+    for j in range(graph_img.shape[1]):
+        if graph_img[i,j] > 230:
+            temp.append(1)
+        else:
+            temp.append(0)
+
+    path_graph.append(temp)
+
+# path_graph = np.array(path_graph)
+
+# print(path_graph.shape)
+
+BFS(path_graph, 80, 112, 92, 98)
