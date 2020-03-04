@@ -190,12 +190,10 @@ for i in range(graph_img.shape[0]):
 
 path_graph = np.array(path_graph)
 
-# for a in range(190, 321):
-#     print(path_graph[80][a], "  ,  ")
-
-# path_coordinates = BFS(path_graph, 80, 190, 80, 320)
-# path_coordinates = BFS(path_graph, 221, 99, 222, 299)
-path_coordinates = BFS(path_graph, 80, 110, 223, 784)
+# path_coordinates = BFS(path_graph, 82, 130, 223, 770)  ## room 223 to 257 works
+# path_coordinates = BFS(path_graph, 223, 127,80,730)  ## room 214 to 246
+# path_coordinates = BFS(path_graph, 223, 327, 81, 293)    ## room 205 to 229
+path_coordinates = BFS(path_graph,223,110,164,810) # 215 to 276A
 
 # print(path_coordinates)
 
