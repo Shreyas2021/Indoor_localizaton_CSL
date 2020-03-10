@@ -97,7 +97,7 @@ def BFS(mat, i, j, x, y):
         n = tup[1]
         
 
-    # print(path)
+    print(path)
     # print(len(path))
     return path
 
@@ -108,7 +108,7 @@ def img_process(image):
     # img=cv2.resize(image,(900,300))
     # cv2.imshow('img',img)
     # cv2.waitKey()
-    # img = cv2.imwrite("/home/shreyasbyndoor/path_planning_floorplan/color_fp_resize.jpg", img)
+    # img = cv2.imwrite("/home/shreyasbyndoor/Indoor_localization_CSL/color_fp_resize.jpg", img)
     
     """
     Apply sobel edge detection on input image in x, y direction
@@ -163,13 +163,13 @@ def img_process(image):
     
     cv2.imshow('img',skel)
     cv2.waitKey()
-    cv2.imwrite('/home/shreyasbyndoor/path_planning_floorplan/skel_fp.jpg', skel)
+    cv2.imwrite('/home/shreyasbyndoor/Indoor_localization_CSL/skel_fp.jpg', skel)
     print('exported')
 
-# img = cv2.imread("/home/shreyasbyndoor/path_planning_floorplan/color_fp_resize.jpg")
+# img = cv2.imread("/home/shreyasbyndoor/Indoor_localization_CSL/color_fp_resize.jpg")
 # img_process(img)
 
-graph_img = cv2.imread("/home/shreyasbyndoor/path_planning_floorplan/skel_fp_filled_2.jpg")
+graph_img = cv2.imread("/home/shreyasbyndoor/Indoor_localization_CSL/skel_fp_filled_2.jpg")
 
 
 cv2.imshow('img',graph_img)
@@ -191,15 +191,22 @@ for i in range(graph_img.shape[0]):
 path_graph = np.array(path_graph)
 
 # path_coordinates = BFS(path_graph, 82, 130, 223, 770)  ## room 223 to 257 works
-# path_coordinates = BFS(path_graph, 223, 127,80,730)  ## room 214 to 246
+path_coordinates = BFS(path_graph, 223, 127,80,730)  ## room 214 to 246
 # path_coordinates = BFS(path_graph, 223, 327, 81, 293)    ## room 205 to 229
-path_coordinates = BFS(path_graph,223,110,164,810) # 215 to 276A
+# path_coordinates = BFS(path_graph,223,110,164,810) # 215 to 276A
 
 # print(path_coordinates)
 
 # // DRAW PATH ON FLOORPLAN 
-img = cv2.imread("/home/shreyasbyndoor/path_planning_floorplan/color_fp_resize.jpg")
+img = cv2.imread("/home/shreyasbyndoor/Indoor_localization_CSL/color_fp_resize.jpg")
 # print(img.shape)
+
+vertchange = 1  #corresponds to change in x coordinates 
+horizchange = 1 #corresponds to change in y coordinates 
+
+# to help detect change in path 
+xprev = path_coordinates[0][0]
+yprev = path_coordinates[0][1]
 
 for i in path_coordinates:
     x = i[0]
@@ -208,6 +215,29 @@ for i in path_coordinates:
     img[x,y,0] = 0
     img[x,y,1] = 255
     img[x,y,2] = 0
+
+
+for i in range(len(path_coordinates)):
+    point = path_coordinates[i]
+    x = point[0]
+    y = point[1]
+
+    if (horizchange == 1):
+        if abs(x-xprev) > 5:
+            vertchange = 1
+            horizchange = 0
+            print("turning point at ",xprev,",",yprev)
+            xprev = x 
+            yprev = y
+
+    if (vertchange == 1):
+        if abs(y-yprev) > 5:
+            vertchange = 0
+            horizchange = 1
+            print("turning point at ",xprev,",",yprev)
+            xprev = x 
+            yprev = y
+    
 
 cv2.imshow('img',img)
 cv2.waitKey()
