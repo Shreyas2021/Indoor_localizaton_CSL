@@ -223,21 +223,60 @@ for i in range(len(path_coordinates)):
     y = point[1]
 
     if (horizchange == 1):
-        if abs(x-xprev) > 5:
+        if x-xprev > 3:
             vertchange = 1
             horizchange = 0
-            print("turning point at ",xprev,",",yprev)
+            print("turning left point at ",xprev,",",yprev)
+            xprev = x 
+            yprev = y
+            
+        if x-xprev < -3:
+            vertchange = 1
+            horizchange = 0
+            print("turning right point at ",xprev,",",yprev)
             xprev = x 
             yprev = y
 
     if (vertchange == 1):
-        if abs(y-yprev) > 5:
+        if y-yprev > 3:
             vertchange = 0
             horizchange = 1
-            print("turning point at ",xprev,",",yprev)
+            print("turning left point at ",xprev,",",yprev)
             xprev = x 
             yprev = y
-    
+        
+        if y-yprev > 3:
+            vertchange = 0
+            horizchange = 1
+            print("turning right point at ",xprev,",",yprev)
+            xprev = x 
+            yprev = y
+
+
+eligible = []    
+for i in range(len(path_coordinates)-10):
+    # for j in range(i, i + 10):
+    del_y = path_coordinates[i+10][1] - path_coordinates[i][1]
+    del_x = path_coordinates[i+10][0] - path_coordinates[i][0]
+    # if (del_y == 0):
+    #     inst_ang = 1
+    # else:
+    #     inst_ang = np.rad2deg(np.arctan(del_x/del_y))
+    # if (abs(inst_ang) >= 6 ):
+    #     eligible.append(path_coordinates[i])
+
+
+
+for i in range(len(eligible)):
+    point = eligible[i]
+    x = point[0]
+    y = point[1]
+
+    img[x,y,0] = 0
+    img[x,y,1] = 0
+    img[x,y,2] = 255
+
+
 
 cv2.imshow('img',img)
 cv2.waitKey()
