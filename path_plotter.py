@@ -96,7 +96,7 @@ def BFS(mat, i, j, x, y):
         m = tup[0]
         n = tup[1]
         
-
+    path = path[::-1]
     print(path)
     # print(len(path))
     return path
@@ -138,6 +138,8 @@ def img_process(image):
             else:
                 binary_output[i,j] = 255
 
+    # Display the skeletonized floorplan 
+
     cv2.imshow('img',binary_output)
     cv2.waitKey()
 
@@ -171,9 +173,10 @@ def img_process(image):
 
 graph_img = cv2.imread("/home/shreyasbyndoor/Indoor_localization_CSL/skel_fp_filled_2.jpg")
 
+# Display the skeletonized image of the flooplan 
 
-cv2.imshow('img',graph_img)
-cv2.waitKey()
+# cv2.imshow('img',graph_img)
+# cv2.waitKey()
 
 graph_img = cv2.cvtColor(graph_img, cv2.COLOR_BGR2GRAY)
 path_graph = []
@@ -190,10 +193,13 @@ for i in range(graph_img.shape[0]):
 
 path_graph = np.array(path_graph)
 
-# path_coordinates = BFS(path_graph, 82, 130, 223, 770)  ## room 223 to 257 works
-path_coordinates = BFS(path_graph, 223, 127,80,730)  ## room 214 to 246
+path_coordinates = BFS(path_graph, 82, 130, 223, 770)  ## room 223 to 257 works
+# path_coordinates = BFS(path_graph,223,127,80,730)  ## room 214 to 246
+# path_coordinates = BFS(path_graph,80,730,223,127)  ## room 246 to 214
 # path_coordinates = BFS(path_graph, 223, 327, 81, 293)    ## room 205 to 229
 # path_coordinates = BFS(path_graph,223,110,164,810) # 215 to 276A
+# path_coordinates = BFS(path_graph,164,810,223,110) # 276A to 215 
+
 
 # print(path_coordinates)
 
@@ -201,8 +207,21 @@ path_coordinates = BFS(path_graph, 223, 127,80,730)  ## room 214 to 246
 img = cv2.imread("/home/shreyasbyndoor/Indoor_localization_CSL/color_fp_resize.jpg")
 # print(img.shape)
 
-vertchange = 1  #corresponds to change in x coordinates 
-horizchange = 1 #corresponds to change in y coordinates 
+# While analyzing keep in mind that the code (x, y) becomes (y, x) in the ubuntu image viewer 
+# Therefore vertchange in the code actually corresponds to ubuntu image vertchange and thats why 
+# we check for change in y to represent horizchange (the intuitive one wouldve been vertchange)
+
+vertchange = (abs(path_coordinates[0][0] - path_coordinates[10][0]) > 5)  
+horizchange  = (abs(path_coordinates[0][1] - path_coordinates[10][1]) > 5)
+
+west = (path_coordinates[10][1] - path_coordinates[0][1] < -5)
+east = (path_coordinates[10][1] - path_coordinates[0][1] > 5)
+north = (path_coordinates[10][0] - path_coordinates[0][0] < -5)
+south = (path_coordinates[10][0] - path_coordinates[0][0] > 5)
+
+
+# vertchange = 1  #corresponds to change in x coordinates 
+# horizchange = 1 #corresponds to change in y coordinates 
 
 # to help detect change in path 
 xprev = path_coordinates[0][0]
@@ -217,56 +236,125 @@ for i in path_coordinates:
     img[x,y,2] = 0
 
 
+print ("Starting point is ", xprev, yprev)
+dummy = 1
+
+# a list that indicates where the user is supposed to turn 
+# tuple with 4 entries = x,y of where the user is supposed to turn
+# and angle indicating how much to turn in clockwise direction, and 
+# initial orientation ie direction before performing turn   
+
+followMeInfo = []
+
 for i in range(len(path_coordinates)):
     point = path_coordinates[i]
     x = point[0]
     y = point[1]
+    if (east): dir = 'EAST'
+    elif (west): dir = 'WEST'
+    elif (north): dir = 'NORTH'
+    elif (south) : dir = 'SOUTH'
+    else : dir = None 
 
-    if (horizchange == 1):
-        if x-xprev > 3:
+    if (horizchange):
+        if x-xprev > 5:
+            if east : 
+                print("turning right point at ",x,y) 
+                followMeInfo.append( ( path_coordinates[i-10][0],  path_coordinates[i-10][1], 90, dir) )
+            if west : 
+                print("turning left point at ",x,y) 
+                followMeInfo.append( ( path_coordinates[i-10][0],   path_coordinates[i-10][1], -90, dir) )
+            south = 1
+        if x-xprev < -5:
+            if east :
+                print("turning left point at ",x,y) 
+                followMeInfo.append( (  path_coordinates[i-10][0],   path_coordinates[i-10][1], -90, dir) )
+            if west :
+                print("turning right point at ",x,y)  
+                followMeInfo.append( (  path_coordinates[i-10][0],   path_coordinates[i-10][1], 90, dir) )
+            north = 1
+        if abs(x-xprev) > 5:
             vertchange = 1
             horizchange = 0
-            print("turning left point at ",xprev,",",yprev)
-            xprev = x 
+            xprev = x
             yprev = y
-            
-        if x-xprev < -3:
-            vertchange = 1
-            horizchange = 0
-            print("turning right point at ",xprev,",",yprev)
-            xprev = x 
-            yprev = y
+            east = 0
+            west = 0
 
-    if (vertchange == 1):
-        if y-yprev > 3:
+    if (vertchange):
+        if y-yprev > 5:
+            if north:
+                print("turning right point at ",x,y)  
+                followMeInfo.append( (  path_coordinates[i-10][0],   path_coordinates[i-10][1], 90, dir) )
+            if south: 
+                print("turning left point at ",x,y)   
+                followMeInfo.append( (  path_coordinates[i-10][0],   path_coordinates[i-10][1], -90, dir) )
+            east = 1
+        if y-yprev <-5:
+            if north: 
+                print("turning left point at ",x,y)    
+                followMeInfo.append( (  path_coordinates[i-10][0],   path_coordinates[i-10][1], -90, dir) )
+            if south: 
+                print("turning right point at ",x,y)  
+                followMeInfo.append( (  path_coordinates[i-10][0],   path_coordinates[i-10][1], 90, dir) )
+            west = 1
+        if abs(y-yprev) > 5:
             vertchange = 0
             horizchange = 1
-            print("turning left point at ",xprev,",",yprev)
-            xprev = x 
+            xprev = x
             yprev = y
-        
-        if y-yprev > 3:
-            vertchange = 0
-            horizchange = 1
-            print("turning right point at ",xprev,",",yprev)
-            xprev = x 
-            yprev = y
+            south = 0
+            north = 0
 
+print ("Reached destination ", x, y)
 
-eligible = []    
-for i in range(len(path_coordinates)-10):
-    # for j in range(i, i + 10):
-    del_y = path_coordinates[i+10][1] - path_coordinates[i][1]
-    del_x = path_coordinates[i+10][0] - path_coordinates[i][0]
-    # if (del_y == 0):
-    #     inst_ang = 1
-    # else:
-    #     inst_ang = np.rad2deg(np.arctan(del_x/del_y))
-    # if (abs(inst_ang) >= 6 ):
-    #     eligible.append(path_coordinates[i])
+print(followMeInfo)
 
 
 
+# OLD METHOD OF TRYING TO CALCULATE WHERE TO TURN AND NY HOW MUCH 
+# eligible = []    
+# for i in range(len(path_coordinates)-10):
+#     # for j in range(i, i + 10):
+#     del_y = path_coordinates[i+10][1] - path_coordinates[i][1]
+#     del_x = path_coordinates[i+10][0] - path_coordinates[i][0]
+#     # if (del_y == 0):
+#     #     inst_ang = 1
+#     # else:
+#     #     inst_ang = np.rad2deg(np.arctan(del_x/del_y))
+#     # if (abs(inst_ang) >= 6 ):
+#     #     eligible.append(path_coordinates[i])
+# for i in range(len(eligible)):
+#     point = eligible[i]
+#     x = point[0]
+#     y = point[1]
+
+#     img[x,y,0] = 0
+#     img[x,y,1] = 0
+#     img[x,y,2] = 255
+# cv2.imshow('img',img)
+# cv2.waitKey()
+
+# LATEST METHOD USING followMeInfo list  
+
+# This is a pointer to the list, the index indicates the current turn we are supposed to take
+turn_to_take = 0
+# Display red points on path which indicates where all we can perform turns 
+eligible = []
+
+for i in range(len(path_coordinates)):
+    point = path_coordinates[i]
+    x = point[0]
+    y = point[1]    
+    if (i + 10) < len(path_coordinates):
+        if( (path_coordinates[i+10]) ==  (followMeInfo[turn_to_take][0], followMeInfo[turn_to_take][1]) ):
+            print("I am at ", x,y," My initial direction is", followMeInfo[turn_to_take][3], "I must now turn ",followMeInfo[turn_to_take][2],"clockwise")
+            for j in range(10):
+                eligible.append(path_coordinates[i+j])
+            turn_to_take = turn_to_take + 1
+            if turn_to_take == len(followMeInfo): break 
+
+# Display the points at which we must start to indicate FollowMe 
 for i in range(len(eligible)):
     point = eligible[i]
     x = point[0]
@@ -275,8 +363,6 @@ for i in range(len(eligible)):
     img[x,y,0] = 0
     img[x,y,1] = 0
     img[x,y,2] = 255
-
-
 
 cv2.imshow('img',img)
 cv2.waitKey()
